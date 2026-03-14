@@ -95,28 +95,30 @@ jobs:
               exit 1
             fi
 
-            BLUE_RUNNING=$(docker ps --filter "name=^/invoice-flow-next-blue$" --filter "status=running" --format '{{.Names}}')
-            GREEN_RUNNING=$(docker ps --filter "name=^/invoice-flow-next-green$" --filter "status=running" --format '{{.Names}}')
+            BLUE_RUNNING=$(docker ps -q -f name=invoice-flow-next-blue -f status=running)
+            GREEN_RUNNING=$(docker ps -q -f name=invoice-flow-next-green -f status=running)
 
-            if [ -n "$BLUE_RUNNING" ]; then
+            if [[ "$BLUE_RUNNING" != "" ]]; then
               ACTIVE_SVC="nextjs_blue"
               ACTIVE_CONT="invoice-flow-next-blue"
               NEW_SVC="nextjs_green"
               NEW_CONT="invoice-flow-next-green"
-              NEW_UPSTREAM_CONF="set \$active_upstream \"nextjs_green:3000\";"
-            elif [ -n "$GREEN_RUNNING" ]; then
+              NEW_UPSTREAM_CONF='set $active_upstream "nextjs_green:3000";'
+
+            elif [[ "$GREEN_RUNNING" != "" ]]; then
               ACTIVE_SVC="nextjs_green"
               ACTIVE_CONT="invoice-flow-next-green"
               NEW_SVC="nextjs_blue"
               NEW_CONT="invoice-flow-next-blue"
-              NEW_UPSTREAM_CONF="set \$active_upstream \"nextjs_blue:3000\";"
+              NEW_UPSTREAM_CONF='set $active_upstream "nextjs_blue:3000";'
+
             else
-              echo "⚠️ No active container found — cold start, deploying blue"
+              echo "⚠️ Cold start — deploying blue"
               ACTIVE_SVC=""
               ACTIVE_CONT=""
               NEW_SVC="nextjs_blue"
               NEW_CONT="invoice-flow-next-blue"
-              NEW_UPSTREAM_CONF="set \$active_upstream \"nextjs_blue:3000\";"
+              NEW_UPSTREAM_CONF='set $active_upstream "nextjs_blue:3000";'
             fi
 
             echo "Active: $ACTIVE_SVC ($ACTIVE_CONT) -> Deploying: $NEW_SVC ($NEW_CONT)"
