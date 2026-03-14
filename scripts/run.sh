@@ -1,8 +1,19 @@
 #!/bin/sh
-set -e
+# run.sh
 
-echo "Running Prisma migrations..."
-npx prisma db push
+echo "Starting application with standalone setup..."
 
-echo "Starting Next.js standalone server..."
-node .next/standalone/server.js
+export PORT=3000
+export HOST=0.0.0.0
+
+# Check if migrations need to be applied
+echo "Checking and applying database migrations..."
+npx prisma migrate deploy
+
+# # run seeder
+# echo "Running database seeder..."
+# node prisma/dist/seed.js
+
+# Start the application on port 3000
+echo "Starting Next.js application on port 3000..."
+node server.js

@@ -111,11 +111,12 @@ jobs:
               NEW_CONT="invoice-flow-next-blue"
               NEW_UPSTREAM_CONF="set \$active_upstream \"nextjs_blue:3000\";"
             else
-              ACTIVE_SVC="nextjs_blue"
-              ACTIVE_CONT="invoice-flow-next-blue"
-              NEW_SVC="nextjs_green"
-              NEW_CONT="invoice-flow-next-green"
-              NEW_UPSTREAM_CONF="set \$active_upstream \"nextjs_green:3000\";"
+              echo "⚠️ No active container found — cold start, deploying blue"
+              ACTIVE_SVC=""
+              ACTIVE_CONT=""
+              NEW_SVC="nextjs_blue"
+              NEW_CONT="invoice-flow-next-blue"
+              NEW_UPSTREAM_CONF="set \$active_upstream \"nextjs_blue:3000\";"
             fi
 
             echo "Active: $ACTIVE_SVC ($ACTIVE_CONT) -> Deploying: $NEW_SVC ($NEW_CONT)"
@@ -154,12 +155,13 @@ jobs:
 
             docker exec "$NGINX_CONT" nginx -s reload
 
-            OLD_IMG_ID="$(docker inspect -f '{{.Image}}' "$ACTIVE_CONT" 2>/dev/null || true)"
-            docker compose stop "${ACTIVE_SVC}" || true
-            docker compose rm -f "${ACTIVE_SVC}" || true
-
-            if [ -n "$OLD_IMG_ID" ]; then
-              docker image rm -f "$OLD_IMG_ID" || true
+            if [ -n "$ACTIVE_SVC" ]; then
+              OLD_IMG_ID="$(docker inspect -f '{{.Image}}' "$ACTIVE_CONT" 2>/dev/null || true)"
+              docker compose stop "${ACTIVE_SVC}" || true
+              docker compose rm -f "${ACTIVE_SVC}" || true
+              if [ -n "$OLD_IMG_ID" ]; then
+                docker image rm -f "$OLD_IMG_ID" || true
+              fi
             fi
 
             echo "✅ Blue/green flip complete: now serving ${NEW_SVC}"

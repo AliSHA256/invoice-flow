@@ -32,6 +32,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.ts ./
 
 COPY --from=builder /app/prisma/schema.prisma ./prisma/schema.prisma
+COPY --from=builder /app/prisma/migrations ./prisma/migrations
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/src/generated ./src/generated
 
